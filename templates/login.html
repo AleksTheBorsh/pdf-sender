@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Вход — PDF Sender{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Вход</h1>
+  <div class="sub">PDF Sender</div>
+
+  <form method="post" action="{{ url_for('login') }}">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required autofocus>
+
+    <label for="password" style="margin-top:14px">Пароль</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit" class="full" style="margin-top:18px">Войти</button>
+  </form>
+</div>
+{% endblock %}

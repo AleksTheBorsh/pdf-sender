@@ -1,149 +1,90 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PDF Sender</title>
-  <style>
-    :root {
-      --bg: #0f1115;
-      --card: #1a1d24;
-      --muted: #8a93a6;
-      --text: #e6e9ef;
-      --accent: #5b8cff;
-      --accent-hover: #7aa2ff;
-      --ok: #4ade80;
-      --error: #f87171;
-      --border: #2a2f3a;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg); color: var(--text);
-      display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px;
-    }
-    .card {
-      width: 100%; max-width: 560px; background: var(--card);
-      border: 1px solid var(--border); border-radius: 12px; padding: 28px;
-    }
-    h1 { margin: 0 0 6px 0; font-size: 22px; }
-    .sub { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
-    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
-    input[type="email"] {
-      width: 100%; padding: 10px 12px; background: #11141a; border: 1px solid var(--border);
-      color: var(--text); border-radius: 8px; font-size: 14px; outline: none;
-    }
-    input[type="email"]:focus { border-color: var(--accent); }
-    .drop {
-      margin-top: 18px; border: 1px dashed var(--border); border-radius: 10px;
-      padding: 22px; text-align: center; cursor: pointer; transition: all .15s;
-      background: #11141a;
-    }
-    .drop:hover, .drop.drag { border-color: var(--accent); background: #141821; }
-    .drop strong { color: var(--accent); }
-    .drop small { color: var(--muted); display: block; margin-top: 4px; }
-    input[type="file"] { display: none; }
-    .files { margin-top: 12px; max-height: 220px; overflow-y: auto; }
-    .files .file {
-      display: flex; justify-content: space-between; padding: 6px 10px; font-size: 13px;
-      border-bottom: 1px solid var(--border);
-    }
-    .files .file:last-child { border-bottom: none; }
-    .files .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .files .size { color: var(--muted); margin-left: 10px; flex-shrink: 0; }
-    button {
-      margin-top: 18px; width: 100%; padding: 12px; background: var(--accent); color: white;
-      border: 0; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
-      transition: background .15s;
-    }
-    button:hover { background: var(--accent-hover); }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    .flash { margin-top: 16px; }
-    .flash div {
-      padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px;
-      white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    }
-    .flash .ok { background: rgba(74,222,128,.1); color: var(--ok); border: 1px solid rgba(74,222,128,.25); }
-    .flash .error { background: rgba(248,113,113,.1); color: var(--error); border: 1px solid rgba(248,113,113,.25); }
-    .footer { margin-top: 18px; color: var(--muted); font-size: 12px; text-align: center; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>PDF Sender</h1>
-    <div class="sub">Каждый файл уходит отдельным письмом с {{ "myshsender@mail.ru" }}</div>
+{% extends "base.html" %}
+{% block title %}Отправка PDF{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Отправка PDF</h1>
+  <div class="sub">Каждый файл уйдёт отдельным письмом</div>
 
-    <form method="post" action="/send" enctype="multipart/form-data" id="form">
-      <label for="recipient">Email получателя</label>
-      <input type="email" id="recipient" name="recipient" placeholder="user@example.com" required>
-
-      <label for="pdfs" style="margin-top:18px">PDF файлы (можно несколько)</label>
-      <div class="drop" id="drop">
-        <strong>Выбрать файлы</strong> или перетащи сюда
-        <small>только .pdf, до 50&nbsp;МБ каждый</small>
-        <input type="file" id="pdfs" name="pdfs" accept="application/pdf,.pdf" multiple required>
-      </div>
-
-      <div class="files" id="files"></div>
-
-      <button type="submit" id="submit">Отправить</button>
-    </form>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash">
-          {% for cat, msg in messages %}
-            <div class="{{ cat }}">{{ msg }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
-    <div class="footer">SMTP smtp.mail.ru:465 (SSL)</div>
+  <div class="info">
+    Получатель: <strong>{{ user.email }}</strong><br>
+    Отправитель: <strong>myshsender@mail.ru</strong>
   </div>
 
-  <script>
-    const drop = document.getElementById('drop');
-    const input = document.getElementById('pdfs');
-    const list = document.getElementById('files');
-    const submit = document.getElementById('submit');
+  <form method="post" action="{{ url_for('send') }}" enctype="multipart/form-data" id="form">
+    <label>PDF файлы (можно несколько)</label>
+    <div class="drop" id="drop">
+      <strong>Выбрать файлы</strong> или перетащи сюда
+      <small>только .pdf, до 50&nbsp;МБ каждый</small>
+      <input type="file" id="pdfs" name="pdfs" accept="application/pdf,.pdf" multiple required>
+    </div>
 
-    const fmtSize = b => b < 1024 ? b + ' B' : b < 1024*1024 ? (b/1024).toFixed(1) + ' KB' : (b/1024/1024).toFixed(2) + ' MB';
+    <div class="files" id="files"></div>
 
-    function render() {
-      list.innerHTML = '';
-      const files = Array.from(input.files || []);
-      if (!files.length) { submit.textContent = 'Отправить'; return; }
-      files.forEach(f => {
-        const row = document.createElement('div');
-        row.className = 'file';
-        row.innerHTML = `<span class="name">${f.name}</span><span class="size">${fmtSize(f.size)}</span>`;
-        list.appendChild(row);
-      });
-      submit.textContent = `Отправить (${files.length} ${files.length === 1 ? 'письмо' : 'писем'})`;
-    }
+    <button type="submit" id="submit" class="full" style="margin-top:18px">Отправить</button>
+  </form>
+</div>
 
-    drop.addEventListener('click', () => input.click());
-    input.addEventListener('change', render);
+<style>
+  .drop {
+    border: 1px dashed var(--border); border-radius: 10px;
+    padding: 22px; text-align: center; cursor: pointer; transition: all .15s;
+    background: #11141a;
+  }
+  .drop:hover, .drop.drag { border-color: var(--accent); background: #141821; }
+  .drop strong { color: var(--accent); }
+  .drop small { color: var(--muted); display: block; margin-top: 4px; }
+  input[type="file"] { display: none; }
+  .files { margin-top: 12px; max-height: 220px; overflow-y: auto; }
+  .files .file {
+    display: flex; justify-content: space-between; padding: 6px 10px; font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .files .file:last-child { border-bottom: none; }
+  .files .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .files .size { color: var(--muted); margin-left: 10px; flex-shrink: 0; }
+</style>
 
-    ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
-      e.preventDefault(); e.stopPropagation(); drop.classList.add('drag');
-    }));
-    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
-      e.preventDefault(); e.stopPropagation(); drop.classList.remove('drag');
-    }));
-    drop.addEventListener('drop', e => {
-      const dropped = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
-      if (!dropped.length) return;
-      const dt = new DataTransfer();
-      dropped.forEach(f => dt.items.add(f));
-      input.files = dt.files;
-      render();
+<script>
+  const drop = document.getElementById('drop');
+  const input = document.getElementById('pdfs');
+  const list = document.getElementById('files');
+  const submit = document.getElementById('submit');
+
+  const fmtSize = b => b < 1024 ? b + ' B' : b < 1024*1024 ? (b/1024).toFixed(1) + ' KB' : (b/1024/1024).toFixed(2) + ' MB';
+
+  function render() {
+    list.innerHTML = '';
+    const files = Array.from(input.files || []);
+    if (!files.length) { submit.textContent = 'Отправить'; return; }
+    files.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'file';
+      row.innerHTML = `<span class="name">${f.name}</span><span class="size">${fmtSize(f.size)}</span>`;
+      list.appendChild(row);
     });
+    submit.textContent = `Отправить (${files.length} ${files.length === 1 ? 'письмо' : 'писем'})`;
+  }
 
-    document.getElementById('form').addEventListener('submit', () => {
-      submit.disabled = true; submit.textContent = 'Отправка…';
-    });
-  </script>
-</body>
-</html>
+  drop.addEventListener('click', () => input.click());
+  input.addEventListener('change', render);
+
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.add('drag');
+  }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove('drag');
+  }));
+  drop.addEventListener('drop', e => {
+    const dropped = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    if (!dropped.length) return;
+    const dt = new DataTransfer();
+    dropped.forEach(f => dt.items.add(f));
+    input.files = dt.files;
+    render();
+  });
+
+  document.getElementById('form').addEventListener('submit', () => {
+    submit.disabled = true; submit.textContent = 'Отправка…';
+  });
+</script>
+{% endblock %}

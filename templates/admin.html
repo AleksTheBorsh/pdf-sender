@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Админка — PDF Sender{% endblock %}
+{% block content %}
+<div class="card wide">
+  <h1>Пользователи</h1>
+  <div class="sub">Каждый юзер шлёт PDF строго на свой email</div>
+
+  <form method="post" action="{{ url_for('admin_create_user') }}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:end;">
+    <div style="flex:2; min-width:200px;">
+      <label for="email">Email нового пользователя</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+    <div style="flex:1; min-width:140px;">
+      <label for="password">Пароль (от 6 симв.)</label>
+      <input type="text" id="password" name="password" minlength="6" required>
+    </div>
+    <button type="submit">Добавить</button>
+  </form>
+
+  <hr class="sep">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Роль</th>
+        <th>Создан</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.email }}</td>
+        <td>{% if u.is_admin %}<span class="badge">admin</span>{% else %}user{% endif %}</td>
+        <td style="color: var(--muted);">{{ u.created_at }}</td>
+        <td>
+          <div class="row-actions">
+            {% if u.id != user.id %}
+              <form method="post" action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                    onsubmit="return confirm('Удалить {{ u.email }}?');">
+                <button type="submit" class="danger small">Удалить</button>
+              </form>
+            {% endif %}
+            <details>
+              <summary>Сменить пароль</summary>
+              <form method="post" action="{{ url_for('admin_reset_password', user_id=u.id) }}">
+                <input type="text" name="password" placeholder="новый пароль" minlength="6" required>
+                <button type="submit" class="small">OK</button>
+              </form>
+            </details>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -6,3 +6,6 @@ __pycache__
 *.pyc
 .env
 README.md
+data/
+*.db
+*.sqlite3
