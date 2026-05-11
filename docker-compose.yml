@@ -1,0 +1,14 @@
+services:
+  pdf-sender:
+    build: .
+    container_name: pdf-sender
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health').read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
